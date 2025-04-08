@@ -1,0 +1,14 @@
+[package]
+name = "rust_recon"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Existing dependencies
+clap = "2.33"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+serde_json = "1.0"
+chrono = "0.4"
+# New dependencies for animations
+indicatif = "0.17.0"
+console = "0.15.0"
