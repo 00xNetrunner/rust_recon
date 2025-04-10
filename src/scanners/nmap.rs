@@ -14,9 +14,9 @@ pub fn run_nmap_scan(mp: &MultiProgress, matches: &ArgMatches, target: &str, bas
     // Add arguments
     let mut nmap_args = vec![];
     
-    // Comprehensive scan
+    // Comprehensive scan (simplified to avoid redundancies since -A already includes -sC and -sV and OS detection)
     if matches.is_present("comprehensive") {
-        nmap_args.extend(vec!["-A", "-p-", "-sT", "-sV", "-O", "--osscan-guess"]);
+        nmap_args.extend(vec!["-A", "-p-"]);
     }
     
     // Quick scan with custom options

@@ -9,7 +9,7 @@ use crate::scanners::nmap::{run_nmap_scan, convert_nmap_to_html};
 use crate::scanners::dns::{perform_whois, perform_nslookup, perform_dig, perform_dnsrecon};
 use crate::scanners::web::{perform_gobuster, perform_nikto, perform_whatweb, perform_ssl_check};
 use crate::scanners::host::perform_enum4linux;
-use crate::scanners::network::perform_traceroute;
+use crate::scanners::network::{perform_traceroute, perform_netdiscover};
 use crate::api::perform_shodan_lookup;
 use crate::report::create_scan_summary;
 
@@ -51,8 +51,8 @@ pub fn run_scans(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
         println!("📁 Scan directory created: {}", style(&scan_dir).green());
     });
     
-    // Base filename (without path)
-    let base_filename = target_ip.replace(".", "_");
+    // Base filename (without path) - replace problematic characters
+    let base_filename = target_ip.replace(".", "_").replace("/", "_");
     
     // NMAP scanning
     if matches.is_present("comprehensive") || matches.is_present("quick") || 
@@ -245,6 +245,36 @@ pub fn run_scans(matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
             },
             Err(e) => {
                 ssl_spinner.finish_with_message(format!("{} SSL/TLS check failed: {}", style("⚠").yellow(), e));
+            }
+        }
+    }
+    
+    // Netdiscover network scan
+    if matches.is_present("netdiscover") {
+        // Verify the input is in CIDR format
+        let network_target = if target_ip.contains("/") {
+            target_ip.to_string()
+        } else {
+            // If not in CIDR, assume it's a single IP and use /24 for that subnet
+            let ip_parts: Vec<&str> = target_ip.split('.').collect();
+            if ip_parts.len() == 4 {
+                format!("{}.{}.{}.0/24", ip_parts[0], ip_parts[1], ip_parts[2])
+            } else {
+                target_ip.to_string() // Just use as-is if we can't parse it
+            }
+        };
+        
+        let netdiscover_spinner = mp.add(create_spinner(
+            &format!("Running Netdiscover on network {}...", 
+            style(&network_target).cyan())
+        ));
+        
+        match perform_netdiscover(&netdiscover_spinner, &network_target, &base_filename, &scan_dir) {
+            Ok(_) => {
+                netdiscover_spinner.finish_with_message(format!("{} Netdiscover completed", style("✓").green()));
+            },
+            Err(e) => {
+                netdiscover_spinner.finish_with_message(format!("{} Netdiscover failed: {}", style("⚠").yellow(), e));
             }
         }
     }

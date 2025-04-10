@@ -15,7 +15,7 @@ pub fn parse_args() -> ArgMatches<'static> {
             .required(true))
         .arg(Arg::with_name("comprehensive")
             .long("comprehensive")
-            .help("Run comprehensive scan (-A -p- -sT -sV -O) that checks all ports with version detection"))
+            .help("Run comprehensive scan (-A -p-) that checks all ports with full version detection and OS detection"))
         .arg(Arg::with_name("quick")
             .long("quick")
             .help("Run quick scan of top ports only (-F -T4) for faster results"))
@@ -91,6 +91,9 @@ pub fn parse_args() -> ArgMatches<'static> {
         .arg(Arg::with_name("ssl-check")
             .long("ssl-check")
             .help("Check SSL/TLS configuration using OpenSSL"))
+        .arg(Arg::with_name("netdiscover")
+            .long("netdiscover")
+            .help("Discover active hosts on network using netdiscover (requires target in CIDR format e.g., 192.168.1.0/24)"))
         .get_matches();
     
     matches
